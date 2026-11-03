@@ -1,0 +1,33 @@
+# Deploy separately from compose.yaml; reuses the existing Supabase database.
+services:
+  migrate:
+    build: .
+    environment: &environment
+      BRAIN_ENVIRONMENT: production
+      BRAIN_DATABASE_URL: ${BRAIN_DATABASE_URL:?Set the internal Supabase PostgreSQL URL}
+      BRAIN_DATABASE_SCHEMA: cognitive_brain
+      BRAIN_JWT_SECRET: ${BRAIN_JWT_SECRET:?Set a dedicated JWT secret}
+      BRAIN_CORS_ORIGINS: ${BRAIN_CORS_ORIGINS:?Set allowed frontend origins as a JSON array}
+    command: ["alembic", "upgrade", "head"]
+    networks:
+      - supabase
+  api:
+    build: .
+    environment: *environment
+    expose:
+      - "8000"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    networks:
+      - supabase
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health/ready')"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+    restart: unless-stopped
+networks:
+  supabase:
+    external: true
+    name: ${SUPABASE_DOCKER_NETWORK:?Set the existing Supabase Docker network name}
