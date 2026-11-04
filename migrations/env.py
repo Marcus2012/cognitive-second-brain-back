@@ -1,5 +1,5 @@
 from alembic import context
-from sqlalchemy import pool
+from sqlalchemy import pool, text
 
 from app import models  # noqa: F401
 from app.config import get_settings
@@ -38,12 +38,18 @@ if context.is_offline_mode():
         context.run_migrations()
 else:
     engine = make_engine(url, poolclass=pool.NullPool)
+    print("Migration: connecting to database", flush=True)
     with engine.connect() as connection:
+        print("Migration: database connected", flush=True)
         context.configure(
             connection=connection,
             **options,
         )
         with context.begin_transaction():
             if schema:
+                connection.execute(text("SET LOCAL lock_timeout = '15s'"))
+                connection.execute(text("SET LOCAL statement_timeout = '60s'"))
                 ensure_schema(connection, schema)
+            print("Migration: applying revisions", flush=True)
             context.run_migrations()
+    print("Migration: completed successfully", flush=True)

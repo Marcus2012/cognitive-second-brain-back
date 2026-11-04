@@ -15,11 +15,19 @@ real del pooler y el nombre de la red Docker existente del servicio Supabase.
 El usuario `postgres.dev_tenant` corresponde al tenant observado en esta instalación.
 La contraseña corresponde a `SERVICE_PASSWORD_POSTGRES`, codificada para URL.
 
-La API y el proceso de migración se unen a esa red. Configurar el dominio del backend
+La API se une a esa red. Configurar el dominio del backend
 en Coolify al puerto interno 8000 y comprobar que el proxy tiene acceso a esa red.
 Este Compose no publica PostgreSQL ni crea otro servicio de base de datos. Las
 migraciones crean las tablas en `cognitive_brain`. No modifican las del otro producto.
 Validar el despliegue en Coolify: Docker no está disponible en el equipo local.
+
+El Compose de Coolify inicia únicamente `api`: se retiró el servicio automático
+`migrate` después de confirmar las cinco tablas en Supabase. Alembic permanece
+disponible. Antes de desplegar cambios que requieran un esquema nuevo, aplicar
+`alembic upgrade head` desde la terminal del contenedor API (o mediante un job de
+release con la misma imagen, red y variables). Ejecutar `alembic current` y
+`alembic check` para verificar la revisión y coherencia. En una instalación vacía
+hay que migrar antes de usar la API; omitir el servicio no crea tablas.
 
 Para acceder a Supabase desde Windows, cambiar **BRAIN_DATABASE_URL** a la URL del
 túnel y mantener SSH activo. Cambiar únicamente `DATABASE_URL` no tiene efecto si

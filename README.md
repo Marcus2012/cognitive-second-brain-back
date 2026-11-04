@@ -1,5 +1,14 @@
 # Cognitive Second Brain — Backend
 
+Para iniciar en Windows con el entorno virtual del proyecto:
+
+```powershell
+.\start-local.ps1
+```
+
+Si aparece `ModuleNotFoundError: pwdlib`, comprueba que usas `.venv` y reinstala las
+dependencias con `.\.venv\Scripts\python -m pip install -e '.[dev]'`.
+
 Backend independiente Python 3.11+ y FastAPI. Primera entrega funcional del plan:
 identidad, workspaces, RBAC, aislamiento multiempresa y auditoría. Arquitectura,
 auditoría y siguientes fases en [docs/architecture.md](docs/architecture.md).
