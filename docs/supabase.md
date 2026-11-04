@@ -28,6 +28,16 @@ copian automáticamente a Supabase.
 
 ## Conexión PostgreSQL
 
+Si el administrador ya creó `cognitive_brain` con propietario `brain_app`, las
+migraciones comprueban su existencia y no ejecutan CREATE SCHEMA. No es necesario
+conceder CREATE sobre la base `postgres`. Si el esquema no existe, el arranque de
+migraciones intentará crearlo (requiere un rol con ese permiso). En modo SQL offline
+(`--sql`) se presupone que el administrador ya provisionó el esquema.
+
+Un error `permission denied for database postgres` en `CREATE SCHEMA IF NOT EXISTS`
+con versiones anteriores requiere desplegar esta corrección, manteniendo los permisos
+restringidos del usuario. No cambiar a la cuenta administradora para evitarlo.
+
 La misma base PostgreSQL puede alojar los dos proyectos. Este backend usa el esquema
 `cognitive_brain`, con tablas `users`, `workspaces`, `memberships`, `audit_events` y
 su propio `alembic_version`. Todos los nombres SQL y claves foráneas se califican

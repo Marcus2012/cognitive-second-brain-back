@@ -1,5 +1,6 @@
-from sqlalchemy import MetaData, create_engine, event
+from sqlalchemy import MetaData, create_engine, event, inspect
 from sqlalchemy.orm import DeclarativeBase, sessionmaker
+from sqlalchemy.schema import CreateSchema
 
 from app.config import get_settings
 
@@ -33,6 +34,13 @@ def make_engine(url: str, **kwargs):
 
 engine = make_engine(get_settings().database_url)
 SessionLocal = sessionmaker(bind=engine, expire_on_commit=False)
+
+
+def ensure_schema(connection, schema: str):
+    # PostgreSQL checks database CREATE privilege even with IF NOT EXISTS.
+    # Pre-provisioned schemas must work for a role without that privilege.
+    if not inspect(connection).has_schema(schema):
+        connection.execute(CreateSchema(schema, if_not_exists=True))
 
 
 def get_db():

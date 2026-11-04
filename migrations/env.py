@@ -1,10 +1,9 @@
 from alembic import context
 from sqlalchemy import pool
-from sqlalchemy.schema import CreateSchema
 
 from app import models  # noqa: F401
 from app.config import get_settings
-from app.db import Base, make_engine
+from app.db import Base, ensure_schema, make_engine
 
 config = context.config
 settings = get_settings()
@@ -35,7 +34,7 @@ if context.is_offline_mode():
     context.configure(url=url, literal_binds=True, **options)
     with context.begin_transaction():
         if schema:
-            context.execute(CreateSchema(schema, if_not_exists=True))
+            context.execute("-- Prerequisite: application schema provisioned by administrator")
         context.run_migrations()
 else:
     engine = make_engine(url, poolclass=pool.NullPool)
@@ -46,5 +45,5 @@ else:
         )
         with context.begin_transaction():
             if schema:
-                connection.execute(CreateSchema(schema, if_not_exists=True))
+                ensure_schema(connection, schema)
             context.run_migrations()
